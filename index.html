@@ -3,336 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>时间计划局</title>
+    <title>等惊蛰</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+
     <style>
         /* --- 全局样式 --- */
         * { box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #2c2c2c; /* 电脑端深色背景 */
+            /* 字体首选艺术字，备用系统字 */
+            font-family: "Ma Shan Zheng", "ZCOOL KuaiLe", cursive, sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
             height: 100dvh;
             display: flex;
             justify-content: center;
+            background-color: #333;
+            overflow: hidden; /* 防止背景溢出 */
         }
 
+        /* --- 核心容器 (半透明玻璃态) --- */
         #app {
             width: 100%;
             max-width: 600px;
-            background-color: #ededed; /* 仿微信灰底 */
+            /* 背景图：春日/雨水意境 */
+            background: url('https://images.unsplash.com/photo-1518182170546-0766aaef31e2?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
+            background-size: cover;
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
 
-        /* --- 顶部栏 --- */
-        .header {
-            padding: 15px;
-            background-color: #ededed;
-            border-bottom: 1px solid #dcdcdc;
-            text-align: center;
-            font-weight: bold;
-            color: #333;
-            font-size: 17px;
-            z-index: 10;
-        }
-
-        /* --- 列表区域 --- */
-        #chat-container {
-            flex: 1;
-            padding: 20px 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            scroll-behavior: smooth;
-        }
-
-        /* --- 任务气泡 --- */
-        .message-row {
-            display: flex;
-            justify-content: flex-end; /* 所有任务都在右边 */
-            animation: fadeIn 0.3s ease;
-        }
-
-        .bubble {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            position: relative;
-            word-wrap: break-word;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-            cursor: pointer;
-            background-color: #95ec69; /* 微信绿 */
-            color: #000;
-        }
-
-        /* 完成状态 */
-        .done {
-            background-color: #dcdcdc;
-            color: #999;
-            text-decoration: line-through;
-        }
-        .done .task-time {
-            color: #999 !important; /* 完成后时间也变灰 */
-            text-decoration: none;
-        }
-
-        /* 时间标签样式 */
-        .task-time {
-            display: block;
-            font-size: 12px;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid rgba(0,0,0,0.1);
-            color: #0066cc; /* 默认时间颜色 */
-            text-align: right;
-            font-weight: 500;
-        }
-        
-        /* 超时警报红 */
-        .overdue {
-            color: #ff4d4f !important;
-            font-weight: bold;
-        }
-
-        /* --- 底部输入区 --- */
-        .input-area {
-            background-color: #f7f7f7;
-            border-top: 1px solid #dcdcdc;
-            padding: 10px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* 时间选择器包装 */
-        .date-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        /* 美化时间选择器图标 */
-        .clock-icon {
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        /* 实际的时间输入框 (设为透明覆盖在图标上，或者点击图标触发) */
-        input[type="datetime-local"] {
-            width: 40px; 
-            padding: 0;
-            border: none;
-            background: transparent;
-            color: transparent; 
-            cursor: pointer;
-        }
-        /* 针对不同浏览器的 hack，让时间选择器看起来像个图标 */
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-            background: transparent;
-            bottom: 0; color: transparent; cursor: pointer;
-            height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
-        }
-
-        /* 文本输入框 */
-        input[type="text"] {
-            flex: 1;
-            height: 40px;
-            border: none;
-            border-radius: 8px;
-            padding: 0 12px;
-            font-size: 16px;
-            background-color: #fff;
-        }
-        input:focus { outline: none; }
-
-        /* 发送按钮 */
-        button {
-            height: 40px;
-            padding: 0 20px;
-            background-color: #07c160;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        button:active { background-color: #06ad56; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-
-    <div id="app">
-        <div class="header">我的任务流</div>
-
-        <div id="chat-container"></div>
-
-        <div class="input-area">
-            <div class="date-wrapper" title="设置截止时间">
-                <span class="clock-icon">🕒</span>
-                <input type="datetime-local" id="timeInput">
-            </div>
-
-            <input type="text" id="taskInput" placeholder="输入任务..." autocomplete="off">
-            <button onclick="addTask()">发送</button>
-        </div>
-    </div>
-
-    <script>
-        const chatContainer = document.getElementById('chat-container');
-        const taskInput = document.getElementById('taskInput');
-        const timeInput = document.getElementById('timeInput');
-        
-        // 读取数据，注意这里换了个 key，避免和之前的混合数据冲突
-        let tasks = JSON.parse(localStorage.getItem('pureTasks')) || [];
-
-        // 初始化
-        if (tasks.length === 0) {
-            renderWelcome();
-        } else {
-            renderTasks();
-        }
-
-        function addTask() {
-            const text = taskInput.value.trim();
-            const timeVal = timeInput.value; // 获取时间字符串 (例如 2023-10-01T12:00)
-
-            if (!text) return;
-
-            const newTask = {
-                id: Date.now(),
-                text: text,
-                targetTime: timeVal, // 存储截止时间
-                done: false,
-                createTime: Date.now()
-            };
-
-            tasks.push(newTask);
-            saveData();
-            appendTask(newTask);
-            
-            // 清空输入
-            taskInput.value = '';
-            timeInput.value = ''; // 重置时间选择器
-            scrollToBottom();
-        }
-
-        function appendTask(task) {
-            const row = document.createElement('div');
-            row.className = 'message-row';
-            row.id = 'task-' + task.id;
-
-            const bubble = document.createElement('div');
-            bubble.className = `bubble ${task.done ? 'done' : ''}`;
-
-            // 1. 任务文本
-            let htmlContent = `<div>${task.text}</div>`;
-
-            // 2. 如果有设定时间，显示时间标签
-            if (task.targetTime) {
-                const formattedTime = formatTime(task.targetTime);
-                const isOverdue = checkOverdue(task.targetTime) && !task.done;
-                
-                htmlContent += `<div class="task-time ${isOverdue ? 'overdue' : ''}">
-                    ${isOverdue ? '⚠️ ' : '🎯 '}${formattedTime}
-                </div>`;
-            }
-
-            bubble.innerHTML = htmlContent;
-
-            // 点击切换完成状态
-            bubble.onclick = () => {
-                task.done = !task.done;
-                saveData();
-                // 简单粗暴重新渲染单个气泡以更新样式（特别是时间颜色）
-                renderTasks(); 
-            };
-
-            // 双击删除
-            bubble.ondblclick = () => {
-                if(confirm('删除这条任务？')) {
-                    tasks = tasks.filter(t => t.id !== task.id);
-                    saveData();
-                    row.remove();
-                }
-            };
-
-            row.appendChild(bubble);
-            chatContainer.appendChild(row);
-        }
-
-        function renderTasks() {
-            chatContainer.innerHTML = '';
-            // 按时间排序？或者保持输入顺序？这里保持输入顺序
-            tasks.forEach(task => appendTask(task));
-            scrollToBottom();
-        }
-
-        function renderWelcome() {
-            const row = document.createElement('div');
-            row.className = 'message-row';
-            row.style.justifyContent = 'flex-start'; // 欢迎语靠左
-            row.innerHTML = `
-                <div class="bubble" style="background-color:#fff; color:#333; cursor:default;">
-                    👋 欢迎！<br>
-                    点击左下角 🕒 可以设置任务截止时间。<br>
-                    点“发送”生成计划。
-                </div>
-            `;
-            chatContainer.appendChild(row);
-        }
-
-        // 辅助函数：格式化显示时间
-        function formatTime(isoString) {
-            if (!isoString) return '';
-            const date = new Date(isoString);
-            const now = new Date();
-            
-            // 获取月、日、时、分
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const day = date.getDate().toString().padStart(2, '0');
-            const hour = date.getHours().toString().padStart(2, '0');
-            const minute = date.getMinutes().toString().padStart(2, '0');
-
-            // 如果是今天，只显示时间
-            if (date.toDateString() === now.toDateString()) {
-                return `今天 ${hour}:${minute}`;
-            }
-            // 如果是明天
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            if (date.toDateString() === tomorrow.toDateString()) {
-                return `明天 ${hour}:${minute}`;
-            }
-
-            return `${month}-${day} ${hour}:${minute}`;
-        }
-
-        // 辅助函数：检查是否超时
-        function checkOverdue(isoString) {
-            if (!isoString) return false;
-            return new Date(isoString) < new Date();
-        }
-
-        function saveData() {
-            localStorage.setItem('pureTasks', JSON.stringify(tasks));
-        }
-
-        function scrollToBottom() {
-            setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 50);
-        }
-
-        taskInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addTask();
-        });
-    </script>
-</body>
-</html>
+        /* 背景遮罩：让文字更清晰，同时营造氛围 */
+        #app::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255
