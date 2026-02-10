@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>等惊蛰</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
-
     <style>
         /* --- 全局样式 --- */
         * { box-sizing: border-box; }
         
         body {
-            /* 字体首选艺术字，备用系统字 */
-            font-family: "Ma Shan Zheng", "ZCOOL KuaiLe", cursive, sans-serif;
+            /* 【关键修改】这里改用了系统自带的书法字体 
+               iOS/Mac 会优先用 "Xingkai SC" (行楷) 或 "STKaiti" (楷体)
+               Windows/Android 会用 "KaiTi" (楷体)
+               完全不需要下载，瞬间加载
+            */
+            font-family: "Xingkai SC", "STKaiti", "KaiTi", "楷体", "Lishu", "SimSun", serif;
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -23,30 +23,35 @@
             display: flex;
             justify-content: center;
             background-color: #333;
-            overflow: hidden; /* 防止背景溢出 */
+            overflow: hidden; 
         }
 
-        /* --- 核心容器 (半透明玻璃态) --- */
+        /* --- 核心容器 --- */
         #app {
             width: 100%;
             max-width: 600px;
-            /* 背景图：春日/雨水意境 */
-            background: url('https://images.unsplash.com/photo-1518182170546-0766aaef31e2?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
-            background-size: cover;
+            /* 【关键修改】背景图改为 CSS 渐变
+               模拟“惊蛰”的氛围：深青色 -> 浅雨色
+               不用下载图片，速度起飞
+            */
+            background: linear-gradient(160deg, #a1c4fd 0%, #c2e9fb 100%);
+            /* 如果喜欢更有质感的深色（夜雨），可以用下面这行代替上面那行： */
+            /* background: linear-gradient(to bottom, #2980b9, #6dd5fa, #ffffff); */
+            
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
-        /* 背景遮罩：让文字更清晰，同时营造氛围 */
+        /* 加一层淡淡的噪点纹理，让背景更有纸张质感 */
         #app::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.75); /* 白色半透明遮罩 */
-            backdrop-filter: blur(5px); /* 毛玻璃效果 */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
             z-index: 0;
+            pointer-events: none;
         }
 
         /* --- 背景大字水印 "等惊蛰" --- */
@@ -56,23 +61,24 @@
             left: 50%;
             transform: translateX(-50%);
             font-size: 80px;
-            color: rgba(0, 50, 100, 0.08); /* 极淡的蓝色 */
+            /* 颜色稍微深一点，融入背景 */
+            color: rgba(255, 255, 255, 0.4); 
             z-index: 0;
             pointer-events: none;
             white-space: nowrap;
-            writing-mode: horizontal-tb; /* 确保横向 */
+            font-weight: bold;
         }
 
         /* --- 顶部栏 --- */
         .header {
-            padding: 15px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 20px;
             text-align: center;
-            font-size: 24px; /* 标题大一点 */
+            font-size: 26px; 
             color: #2c3e50;
             z-index: 10;
-            position: relative;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+            /* 底部加一点渐变线条 */
+            border-bottom: 1px solid rgba(255,255,255,0.3);
         }
 
         /* --- 列表区域 --- */
@@ -83,11 +89,10 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            scroll-behavior: smooth;
-            z-index: 1; /* 在遮罩之上 */
+            z-index: 1; 
         }
 
-        /* --- 任务气泡 (横向排列修改) --- */
+        /* --- 任务气泡 --- */
         .message-row {
             display: flex;
             justify-content: flex-end; 
@@ -96,60 +101,52 @@
 
         .bubble {
             max-width: 90%;
-            padding: 10px 18px;
-            border-radius: 12px;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            cursor: pointer;
-            background-color: rgba(255, 255, 255, 0.9); /* 气泡改为白色，更干净 */
-            color: #333;
-            font-size: 18px; /* 字体加大 */
-            border: 1px solid rgba(0,0,0,0.05);
+            padding: 12px 20px;
+            border-radius: 16px;
+            border-bottom-right-radius: 4px; /* 让气泡稍微有点造型 */
             
-            /* 【关键修改】横向排列布局 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.85); /* 稍微透一点背景色 */
+            backdrop-filter: blur(5px);
+            color: #333;
+            font-size: 19px; /* 书法字大一点好看 */
+            
             display: flex;
-            flex-direction: row; /* 横向 */
-            align-items: baseline; /* 文字底部对齐 */
-            gap: 10px; /* 文字和时间之间的间距 */
-            flex-wrap: wrap; /* 如果字太多，允许换行 */
+            flex-direction: row; 
+            align-items: baseline; 
+            gap: 12px; 
+            flex-wrap: wrap; 
         }
 
-        /* 完成状态 */
         .done {
-            background-color: rgba(200, 200, 200, 0.6);
-            color: #888;
+            background-color: rgba(255, 255, 255, 0.4);
+            color: #777;
             text-decoration: line-through;
-            border: none;
+            box-shadow: none;
         }
 
-        /* 任务文本 */
-        .task-text {
-            flex: 1; /* 占据主要空间 */
-        }
+        .task-text { flex: 1; }
 
-        /* 时间标签 (蓝色) */
         .task-time {
-            font-size: 14px;
-            color: #0056b3; /* 改为深蓝色 */
-            white-space: nowrap; /* 时间不换行 */
-            font-family: sans-serif; /* 时间建议用普通字体，更易读，或者也用艺术字 */
-            opacity: 0.8;
+            font-size: 15px;
+            color: #2980b9; /* 也是一种惊蛰蓝 */
+            font-family: -apple-system, sans-serif; /* 时间保持清晰 */
+            font-weight: bold;
+            opacity: 0.9;
         }
         
-        .overdue {
-            color: #ff4d4f !important;
-            font-weight: bold;
-        }
+        .overdue { color: #c0392b !important; }
 
         /* --- 底部输入区 --- */
         .input-area {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-top: 1px solid rgba(0,0,0,0.1);
-            padding: 12px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             z-index: 10;
         }
 
@@ -160,60 +157,51 @@
         }
 
         .clock-icon {
-            font-size: 26px;
-            cursor: pointer;
-            filter: grayscale(100%); /* 灰色图标 */
-            transition: 0.2s;
+            font-size: 28px;
+            color: #555;
         }
-        .date-wrapper:active .clock-icon { transform: scale(0.9); }
 
         input[type="datetime-local"] {
             position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-            opacity: 0; cursor: pointer;
+            opacity: 0; 
         }
 
         input[type="text"] {
             flex: 1;
-            height: 44px;
-            border: 1px solid #ddd;
-            border-radius: 22px; /* 圆角输入框 */
-            padding: 0 16px;
-            font-size: 16px;
-            background-color: rgba(255,255,255,0.8);
-            font-family: inherit; /* 继承艺术字体 */
+            height: 46px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 23px; 
+            padding: 0 20px;
+            font-size: 17px;
+            background-color: rgba(255,255,255,0.9);
+            font-family: inherit; 
+            color: #333;
         }
         input[type="text"]:focus {
             outline: none;
-            border-color: #4facfe;
             background-color: #fff;
+            box-shadow: 0 0 0 2px #a1c4fd;
         }
 
-        /* --- 蓝色发送按钮 --- */
+        /* --- 按钮改为更高级的青蓝色 --- */
         button {
-            height: 44px;
-            padding: 0 24px;
-            /* 渐变蓝 */
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
-            /* 或者纯色蓝： background-color: #007bff; */
+            height: 46px;
+            padding: 0 26px;
+            /* 惊蛰青绿渐变 */
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
             border: none;
-            border-radius: 22px;
+            border-radius: 23px;
             font-size: 18px;
             font-family: inherit;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.4);
-            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+            letter-spacing: 1px;
         }
-        button:active { 
-            transform: scale(0.96);
-            box-shadow: 0 2px 5px rgba(79, 172, 254, 0.4);
-        }
+        button:active { transform: scale(0.96); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* 隐藏滚动条 */
-        #chat-container::-webkit-scrollbar { width: 4px; }
-        #chat-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.1); border-radius: 2px; }
+        #chat-container::-webkit-scrollbar { width: 0; }
     </style>
 </head>
 <body>
@@ -226,7 +214,7 @@
         <div id="chat-container"></div>
 
         <div class="input-area">
-            <div class="date-wrapper" title="选择时间">
+            <div class="date-wrapper">
                 <span class="clock-icon">⏰</span>
                 <input type="datetime-local" id="timeInput">
             </div>
@@ -241,34 +229,22 @@
         const taskInput = document.getElementById('taskInput');
         const timeInput = document.getElementById('timeInput');
         
+        // 数据Key不变，保留你的记录
         let tasks = JSON.parse(localStorage.getItem('jingzheTasks')) || [];
 
-        if (tasks.length === 0) {
-            renderWelcome();
-        } else {
-            renderTasks();
-        }
+        if (tasks.length === 0) { renderWelcome(); } else { renderTasks(); }
 
         function addTask() {
             const text = taskInput.value.trim();
             const timeVal = timeInput.value;
-
             if (!text) return;
 
-            const newTask = {
-                id: Date.now(),
-                text: text,
-                targetTime: timeVal,
-                done: false
-            };
-
+            const newTask = { id: Date.now(), text: text, targetTime: timeVal, done: false };
             tasks.push(newTask);
             saveData();
             appendTask(newTask);
             
-            taskInput.value = '';
-            timeInput.value = ''; 
-            scrollToBottom();
+            taskInput.value = ''; timeInput.value = ''; scrollToBottom();
         }
 
         function appendTask(task) {
@@ -279,84 +255,44 @@
             const bubble = document.createElement('div');
             bubble.className = `bubble ${task.done ? 'done' : ''}`;
 
-            // --- 修改：横向排列逻辑 ---
-            // 左边是文字，右边是时间
             let htmlContent = `<div class="task-text">${task.text}</div>`;
-
             if (task.targetTime) {
                 const formattedTime = formatTime(task.targetTime);
                 const isOverdue = checkOverdue(task.targetTime) && !task.done;
-                
-                // 时间显示在文字右侧
-                htmlContent += `<div class="task-time ${isOverdue ? 'overdue' : ''}">
-                    ${isOverdue ? '⚠️' : ''} ${formattedTime}
-                </div>`;
+                htmlContent += `<div class="task-time ${isOverdue ? 'overdue' : ''}">${isOverdue ? '⚠️' : ''} ${formattedTime}</div>`;
             }
 
             bubble.innerHTML = htmlContent;
-
-            bubble.onclick = () => {
-                task.done = !task.done;
-                saveData();
-                renderTasks(); 
-            };
-
-            bubble.ondblclick = () => {
-                if(confirm('删除这条？')) {
-                    tasks = tasks.filter(t => t.id !== task.id);
-                    saveData();
-                    row.remove();
-                }
-            };
+            bubble.onclick = () => { task.done = !task.done; saveData(); renderTasks(); };
+            bubble.ondblclick = () => { if(confirm('删除?')) { tasks = tasks.filter(t => t.id !== task.id); saveData(); row.remove(); }};
 
             row.appendChild(bubble);
             chatContainer.appendChild(row);
         }
 
-        function renderTasks() {
-            chatContainer.innerHTML = '';
-            tasks.forEach(task => appendTask(task));
-            scrollToBottom();
-        }
+        function renderTasks() { chatContainer.innerHTML = ''; tasks.forEach(task => appendTask(task)); scrollToBottom(); }
 
         function renderWelcome() {
-            const row = document.createElement('div');
-            row.className = 'message-row';
-            row.style.justifyContent = 'center'; 
-            row.innerHTML = `
-                <div class="bubble" style="background:none; border:none; box-shadow:none; font-size: 20px; color: #555;">
-                    春雷响，万物长<br>写下你的计划吧
-                </div>
-            `;
+            const row = document.createElement('div'); row.className = 'message-row'; row.style.justifyContent = 'center'; 
+            row.innerHTML = `<div class="bubble" style="background:none; border:none; box-shadow:none; color: #555; text-align:center;">极速本地版<br>春雷响，万物长</div>`;
             chatContainer.appendChild(row);
         }
 
         function formatTime(isoString) {
             if (!isoString) return '';
-            const date = new Date(isoString);
-            const now = new Date();
+            const date = new Date(isoString); const now = new Date();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const day = date.getDate().toString().padStart(2, '0');
             const hour = date.getHours().toString().padStart(2, '0');
             const minute = date.getMinutes().toString().padStart(2, '0');
-
             if (date.toDateString() === now.toDateString()) return `${hour}:${minute}`;
-            
-            // 简单化显示：月-日
             return `${month}-${day} ${hour}:${minute}`;
         }
 
-        function checkOverdue(isoString) {
-            if (!isoString) return false;
-            return new Date(isoString) < new Date();
-        }
-
+        function checkOverdue(isoString) { if (!isoString) return false; return new Date(isoString) < new Date(); }
         function saveData() { localStorage.setItem('jingzheTasks', JSON.stringify(tasks)); }
         function scrollToBottom() { setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 50); }
-
-        taskInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addTask();
-        });
+        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
     </script>
 </body>
 </html>
